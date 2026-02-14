@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, useRef, use } from "react";
 import { useRouter } from "next/navigation";
 import { getTicket, resolveTicket, retryTriage } from "@/lib/api";
 
@@ -20,34 +20,54 @@ export default function TicketDetailPage({ params }) {
   const [retrying, setRetrying] = useState(false);
   const [error, setError] = useState(null);
   const [resolved, setResolved] = useState(false);
+  const pollingTriggerRef = useRef(0);
 
   useEffect(() => {
     let interval;
+    let isMounted = true;
+    let errorCount = 0;
+    const MAX_ERRORS = 5;
 
     async function fetchTicket() {
       try {
         const res = await getTicket(id);
+
+        if (!isMounted) return;
+
         setTicket(res.data);
         setDraft(res.data.aiDraft || res.data.resolvedReply || "");
+        errorCount = 0; // Reset error count on success.
 
-        // Stop polling once ticket reaches a terminal state.
-        if (["TRIAGED", "RESOLVED", "FAILED"].includes(res.data.status)) {
+        // Stop polling on terminal states.
+        const terminalStates = ["TRIAGED", "RESOLVED", "FAILED"];
+        if (terminalStates.includes(res.data.status)) {
           clearInterval(interval);
         }
       } catch (err) {
-        setError(err.message);
-        clearInterval(interval);
+        errorCount++;
+
+        // Stop polling after repeated failures.
+        if (errorCount >= MAX_ERRORS) {
+          clearInterval(interval);
+          if (isMounted) {
+            setError("Unable to fetch ticket updates. Please refresh the page.");
+          }
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
 
     fetchTicket();
+    interval = setInterval(fetchTicket, 5000);
 
-    // Poll while ticket is still being processed.
-    interval = setInterval(fetchTicket, 3000);
-    return () => clearInterval(interval);
-  }, [id]);
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [id, pollingTriggerRef.current]);
 
   const handleResolve = async () => {
     if (!draft.trim()) return;
@@ -66,20 +86,20 @@ export default function TicketDetailPage({ params }) {
   };
 
   const handleRetry = async () => {
+    if (retrying) return; // Prevent double-click.
+
     setRetrying(true);
     setError(null);
 
     try {
       await retryTriage(id);
-      setTicket((prev) => ({ ...prev, status: "PENDING" }));
-      setLoading(true);
 
-      // Re-fetch after a short delay.
-      setTimeout(async () => {
-        const res = await getTicket(id);
-        setTicket(res.data);
-        setLoading(false);
-      }, 2000);
+      // Optimistic update.
+      setTicket((prev) => ({ ...prev, status: "PENDING" }));
+
+      // Restart polling by incrementing ref.
+      pollingTriggerRef.current += 1;
+
     } catch (err) {
       setError(err.message);
     } finally {
@@ -141,9 +161,16 @@ export default function TicketDetailPage({ params }) {
       {isProcessing && (
         <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg flex items-center gap-3">
           <div className="animate-spin w-5 h-5 border-2 border-blue-300 border-t-blue-600 rounded-full" />
-          <p className="text-sm text-blue-700">
-            AI is processing this ticket. Results will appear automatically...
-          </p>
+          <div>
+            <p className="text-sm text-blue-700 font-medium">
+              {ticket.status === "PENDING"
+                ? "AI triage queued, waiting for processing..."
+                : "AI is analyzing the ticket..."}
+            </p>
+            <p className="text-xs text-blue-600 mt-1">
+              Status updates automatically every 5 seconds
+            </p>
+          </div>
         </div>
       )}
 
