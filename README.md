@@ -190,14 +190,17 @@ cd triage-hub
 # 2. Set your LLM API key.
 export LLM_API_KEY=your-api-key
 
-# 3. Start all services.
-docker compose up --build
+# 3. Start all services (in detached mode).
+docker compose up -d --build
 
-# 4. Run database migration (first time only, in a new terminal).
+# 4. Run database migration (first time only).
 docker exec triage_backend npx prisma migrate deploy
 
 # 5. (Optional) Seed demo data.
 docker exec triage_backend node prisma/seed.js
+
+# 📋 View logs (optional).
+docker compose logs -f
 ```
 
 **Access:**
