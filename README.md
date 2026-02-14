@@ -7,6 +7,7 @@ An AI-powered support ticket management system that ingests customer complaints 
 - [Architecture](#architecture)
 - [Tech Stack](#tech-stack)
 - [Engineering Decisions](#engineering-decisions)
+- [Getting an LLM API Key](#getting-an-llm-api-key)
 - [Quick Start (Docker)](#quick-start-docker)
 - [Manual Setup](#manual-setup)
 - [API Reference](#api-reference)
@@ -113,6 +114,65 @@ Instead of WebSocket complexity, the dashboard uses **polling** (every 5 seconds
 
 ---
 
+---
+
+## Getting an LLM API Key
+
+This project requires an API key from any **OpenAI-compatible** LLM provider. Below are the most common options:
+
+### Option 1: OpenAI (Recommended)
+
+1. Go to [platform.openai.com](https://platform.openai.com/) and sign up or log in.
+2. Navigate to **API Keys** page: [platform.openai.com/api-keys](https://platform.openai.com/api-keys).
+3. Click **"Create new secret key"**, give it a name, and copy the key (starts with `sk-`).
+4. Add billing: Go to **Settings → Billing** and add a payment method. OpenAI requires a minimum $5 credit to start.
+5. The default model used is `gpt-4o-mini` (~$0.15 per 1M input tokens — very affordable for testing).
+
+```bash
+# Set in your environment.
+export LLM_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxx
+export LLM_BASE_URL=https://api.openai.com/v1    # default, can be omitted.
+export LLM_MODEL=gpt-4o-mini                     # default, can be omitted.
+```
+
+### Option 2: Groq (Free Tier Available)
+
+1. Go to [console.groq.com](https://console.groq.com/) and sign up.
+2. Navigate to **API Keys** and create a new key.
+3. Groq offers a generous free tier with rate limits.
+
+```bash
+export LLM_API_KEY=gsk_xxxxxxxxxxxxxxxxxxxxxxxx
+export LLM_BASE_URL=https://api.groq.com/openai/v1
+export LLM_MODEL=llama-3.3-70b-versatile
+```
+
+### Option 3: OpenRouter (Multi-Model Access)
+
+1. Go to [openrouter.ai](https://openrouter.ai/) and sign up.
+2. Navigate to **Keys** page and create a new key.
+3. OpenRouter gives access to multiple models (OpenAI, Anthropic, Meta, etc.) through a single API key.
+
+```bash
+export LLM_API_KEY=sk-or-xxxxxxxxxxxxxxxxxxxxxxxx
+export LLM_BASE_URL=https://openrouter.ai/api/v1
+export LLM_MODEL=openai/gpt-4o-mini
+```
+
+### Where to Put the Key
+
+| Setup | Where |
+|-------|-------|
+| Docker Compose | Set as environment variable before running: `export LLM_API_KEY=sk-...` then `docker compose up` |
+| Docker `.env` file | Create `.env` in project root: `LLM_API_KEY=sk-...` (Docker Compose reads it automatically) |
+| Manual (backend) | Copy `backend/.env.example` to `backend/.env` and fill in `LLM_API_KEY=sk-...` |
+
+> **⚠️ Never commit your API key to Git.** The `.env` file is already in `.gitignore`.
+
+[Back to Top](#table-of-contents)
+
+---
+
 ## Quick Start (Docker)
 
 ### Prerequisites
@@ -128,7 +188,7 @@ git clone https://github.com/PanjiNamjaElf/triage-hub.git
 cd triage-hub
 
 # 2. Set your LLM API key.
-export LLM_API_KEY=sk-your-openai-api-key
+export LLM_API_KEY=your-api-key
 
 # 3. Start all services.
 docker compose up --build
