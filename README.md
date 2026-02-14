@@ -120,19 +120,17 @@ Instead of WebSocket complexity, the dashboard uses **polling** (every 5 seconds
 
 This project requires an API key from any **OpenAI-compatible** LLM provider. Below are the most common options:
 
-### Option 1: OpenAI (Recommended)
+### Option 1: OpenRouter (Recommended - Free Tier Available)
 
-1. Go to [platform.openai.com](https://platform.openai.com/) and sign up or log in.
-2. Navigate to **API Keys** page: [platform.openai.com/api-keys](https://platform.openai.com/api-keys).
-3. Click **"Create new secret key"**, give it a name, and copy the key (starts with `sk-`).
-4. Add billing: Go to **Settings → Billing** and add a payment method. OpenAI requires a minimum $5 credit to start.
-5. The default model used is `gpt-4o-mini` (~$0.15 per 1M input tokens — very affordable for testing).
+1. Go to [openrouter.ai](https://openrouter.ai/) and sign up.
+2. Navigate to **Keys** page and create a new key.
+3. OpenRouter gives access to multiple models (OpenAI, Anthropic, Meta, etc.) through a single API key.
+4. **Free tier available** — No payment required to start testing with various models.
 
 ```bash
-# Set in your environment.
-export LLM_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxx
-export LLM_BASE_URL=https://api.openai.com/v1    # default, can be omitted.
-export LLM_MODEL=gpt-4o-mini                     # default, can be omitted.
+export LLM_API_KEY=sk-or-xxxxxxxxxxxxxxxxxxxxxxxx
+export LLM_BASE_URL=https://openrouter.ai/api/v1
+export LLM_MODEL=openai/gpt-4o-mini
 ```
 
 ### Option 2: Groq (Free Tier Available)
@@ -147,16 +145,19 @@ export LLM_BASE_URL=https://api.groq.com/openai/v1
 export LLM_MODEL=llama-3.3-70b-versatile
 ```
 
-### Option 3: OpenRouter (Multi-Model Access)
+### Option 3: OpenAI
 
-1. Go to [openrouter.ai](https://openrouter.ai/) and sign up.
-2. Navigate to **Keys** page and create a new key.
-3. OpenRouter gives access to multiple models (OpenAI, Anthropic, Meta, etc.) through a single API key.
+1. Go to [platform.openai.com](https://platform.openai.com/) and sign up or log in.
+2. Navigate to **API Keys** page: [platform.openai.com/api-keys](https://platform.openai.com/api-keys).
+3. Click **"Create new secret key"**, give it a name, and copy the key (starts with `sk-`).
+4. Add billing: Go to **Settings → Billing** and add a payment method. OpenAI requires a minimum $5 credit to start.
+5. The default model used is `gpt-4o-mini` (~$0.15 per 1M input tokens — very affordable for testing).
 
 ```bash
-export LLM_API_KEY=sk-or-xxxxxxxxxxxxxxxxxxxxxxxx
-export LLM_BASE_URL=https://openrouter.ai/api/v1
-export LLM_MODEL=openai/gpt-4o-mini
+# Set in your environment.
+export LLM_API_KEY=sk-xxxxxxxxxxxxxxxxxxxxxxxx
+export LLM_BASE_URL=https://api.openai.com/v1    # default, can be omitted.
+export LLM_MODEL=gpt-4o-mini                     # default, can be omitted.
 ```
 
 ### Where to Put the Key
@@ -187,17 +188,16 @@ export LLM_MODEL=openai/gpt-4o-mini
 git clone https://github.com/PanjiNamjaElf/triage-hub.git
 cd triage-hub
 
-# 2. Set your LLM API key.
-export LLM_API_KEY=your-api-key
+# 2. Configure environment variables.
+cp .env.example .env
+# Edit .env and set your LLM_API_KEY (required for AI triage to work).
+# Optional: Customize LLM_BASE_URL and LLM_MODEL if using a different provider.
 
 # 3. Start all services (in detached mode).
 docker compose up -d --build
 
-# 4. Run database migration (first time only).
-docker exec triage_backend npx prisma migrate deploy
-
-# 5. (Optional) Seed demo data.
-docker exec triage_backend node prisma/seed.js
+# 4. (Optional) Seed demo data.
+docker compose exec backend npm run db:seed
 
 # 📋 View logs (optional).
 docker compose logs -f
