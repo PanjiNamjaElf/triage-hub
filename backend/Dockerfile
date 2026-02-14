@@ -6,7 +6,7 @@ COPY package*.json ./
 RUN npm ci
 
 COPY prisma ./prisma/
-RUN npx prisma generate
+RUN npm run db:generate
 
 COPY . .
 
@@ -30,4 +30,4 @@ COPY --from=builder /app/package*.json ./
 EXPOSE 4000
 
 # Run migrations and start server.
-CMD ["sh", "-c", "npx prisma migrate deploy && node src/index.js"]
+CMD ["sh", "-c", "npm run db:migrate && node src/index.js"]
