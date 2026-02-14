@@ -33,6 +33,7 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+    image: triage_backend
     container_name: triage_backend
     environment:
       DATABASE_URL: postgresql://triage_user:triage_pass@postgres:5432/triage_hub
@@ -54,6 +55,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+    image: triage_frontend
     container_name: triage_frontend
     environment:
       NEXT_PUBLIC_API_URL: http://localhost:4000/api
