@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Support ticket status lifecycle.
+enum TicketStatus {
+  PENDING
+  PROCESSING
+  TRIAGED
+  RESOLVED
+  FAILED
+}
+
+/// Urgency level assigned by AI triage.
+enum Urgency {
+  HIGH
+  MEDIUM
+  LOW
+}
+
+/// Category assigned by AI triage.
+enum Category {
+  BILLING
+  TECHNICAL
+  FEATURE_REQUEST
+  UNCATEGORIZED
+}
+
+/// Support ticket submitted by a user.
+model Ticket {
+  id              String       @id @default(uuid())
+  customerName    String       @map("customer_name")
+  customerEmail   String       @map("customer_email")
+  subject         String
+  complaint       String       @db.Text
+
+  // AI-generated fields (populated after background processing).
+  status          TicketStatus @default(PENDING)
+  category        Category     @default(UNCATEGORIZED)
+  urgency         Urgency?
+  sentimentScore  Int?         @map("sentiment_score") @db.SmallInt
+  aiDraft         String?      @map("ai_draft") @db.Text
+  resolvedReply   String?      @map("resolved_reply") @db.Text
+
+  // Error tracking for failed AI processing.
+  errorMessage    String?      @map("error_message") @db.Text
+  retryCount      Int          @default(0) @map("retry_count") @db.SmallInt
+
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+  resolvedAt      DateTime?    @map("resolved_at")
+
+  @@index([status])
+  @@index([urgency])
+  @@index([category])
+  @@index([createdAt(sort: Desc)])
+  @@map("tickets")
+}
