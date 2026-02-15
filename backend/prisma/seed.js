@@ -15,12 +15,7 @@ async function main() {
       subject: "Double charged on monthly subscription",
       complaint:
         "I was charged twice for my Pro subscription this month. Transaction IDs: TXN-001 and TXN-002. Please refund the duplicate charge immediately.",
-      status: "TRIAGED",
-      category: "BILLING",
-      urgency: "HIGH",
-      sentimentScore: 3,
-      aiDraft:
-        "Dear John,\n\nThank you for bringing this to our attention. I can confirm we've identified the duplicate charge on your account. We sincerely apologize for the inconvenience.\n\nWe have initiated a full refund for transaction TXN-002, which should appear in your account within 3-5 business days.\n\nPlease don't hesitate to reach out if you have any further questions.\n\nBest regards,\nSupport Team",
+      status: "FAILED",
     },
     {
       customerName: "Jane Smith",
